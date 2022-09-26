@@ -1,0 +1,21 @@
+#!/bin/bash
+
+set -Eueo pipefail
+
+latest=$(curl -sL https://github.com/cli/cli/releases/latest -H 'Accept: application/json' | jq -r .tag_name | tr -d v)
+
+function install {
+  curl -sL https://github.com/cli/cli/releases/download/v"$latest"/gh_"$latest"_linux_amd64.deb -o /tmp/gh.deb
+  sudo apt install /tmp/gh.deb
+  echo done!
+}
+
+if ! which gh >/dev/null; then
+  echo "gh CLI installation not found; installing version $latest..." 
+  install
+elif ! grep "$latest" <(gh --version) > /dev/null; then
+  echo "old gh CLI version ($(gh --version | head -n1)) detected; installing $latest..."
+  install
+else
+  echo "gh CLI is already up to date!"
+fi
